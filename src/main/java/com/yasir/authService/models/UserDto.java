@@ -12,8 +12,6 @@ public class UserDto {
 
     private String phoneNumber;
 
-    private Role role;
-
     public String getFullName() {
         return fullName;
     }
@@ -46,11 +44,4 @@ public class UserDto {
         this.phoneNumber = phoneNumber;
     }
 
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
 }

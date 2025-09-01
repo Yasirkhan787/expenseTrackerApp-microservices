@@ -1,0 +1,88 @@
+package com.yasir.authService.services.Implementations;
+
+import com.yasir.authService.services.JwtService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.function.Function;
+
+@Service
+public class JwtServiceImpl implements JwtService {
+
+    private final Long EXPIRATION_TIME = 1000*60*60L;  // 1 hour
+
+    private final String SECRET;
+
+    private final UserDetailServiceImpl userDetailService;
+
+    public JwtServiceImpl(@Value("${jwt.secret}") String SECRET, UserDetailServiceImpl userDetailService) {
+        this.SECRET = SECRET;
+        this.userDetailService = userDetailService;
+    }
+
+    //
+    @Override
+    public String generateJwtToken(String username) {
+
+       return Jwts
+               .builder()
+               .setSubject(username)
+               .setIssuedAt(new Date())
+               .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+               .signWith(getSignKey(), SignatureAlgorithm.HS256)
+               .compact();
+    }
+
+    //
+    @Override
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    @Override
+    public Boolean isTokenValid(String token, UserDetails userDetails) {
+        String username = extractUsername(token);
+        return ((username.equals(userDetails.getUsername())) && (!isTokenExpired(token)));
+    }
+
+    //
+    private Key getSignKey(){
+        byte[] key = SECRET.getBytes();
+        return Keys.hmacShaKeyFor(key);
+    }
+
+    //
+    private Claims extractAllClaims(String token){
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    //
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    //
+    private boolean isTokenExpired(String token) {
+        Date expirationDate = extractClaim(token, Claims::getExpiration);
+        return (expirationDate.before(new Date()));
+    }
+
+    //
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        return userDetailService.loadUserByUsername(username);
+    }
+}

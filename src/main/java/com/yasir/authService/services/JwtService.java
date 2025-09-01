@@ -1,0 +1,15 @@
+package com.yasir.authService.services;
+
+import org.springframework.security.core.userdetails.UserDetails;
+
+public interface JwtService {
+
+    String generateJwtToken(String username);
+
+    String extractUsername(String token);
+
+    Boolean isTokenValid(String token, UserDetails userDetails);
+
+    UserDetails loadUserByUsername(String username);
+
+}

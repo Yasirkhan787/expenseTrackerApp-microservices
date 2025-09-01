@@ -21,6 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -101,11 +103,22 @@ public class UserServiceImpl implements UserService {
         );
 
         if (authentication.isAuthenticated()) {
-            // Generate Access Token (JWT)
-            String accessToken = jwtService.generateJwtToken(request.getEmail());
+            // Get user by email
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+            if (userOptional.isEmpty()) {
+                throw new RuntimeException("User not found with email: " + request.getEmail());
+            }
 
-            // Generate Refresh Token (can be longer expiry)
-            String refreshToken = refreshTokenService.generateRefreshToken(request.getEmail());
+            User user = userOptional.get();
+
+            // Get role as string
+            String role = user.getRole().name();
+
+            // Generate JWT Access Token
+            String accessToken = jwtService.generateJwtToken(user.getEmail(), role);
+
+            // Generate Refresh Token (longer expiry)
+            String refreshToken = refreshTokenService.generateRefreshToken(user.getEmail());
 
             // Build response
             AuthResponse response =

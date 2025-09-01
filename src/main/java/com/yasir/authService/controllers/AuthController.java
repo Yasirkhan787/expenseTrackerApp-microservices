@@ -34,7 +34,6 @@ public class AuthController {
     // ✅ Register new User
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> registerUser(@RequestBody SignUpRequest request) {
-        System.out.println("CALLED METHOD:  /register" );
         RegisterResponse response = userService.registerUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED); // 201 Created
     }
@@ -42,7 +41,6 @@ public class AuthController {
     // ✅ Authenticate User
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest request) {
-        System.out.println("CALLED METHOD:  /register" );
         AuthResponse response = userService.authenticateUser(request);
         return new ResponseEntity<>(response, HttpStatus.OK); // 200 OK
     }
@@ -53,7 +51,7 @@ public class AuthController {
         if (refreshTokenService.validateRefreshToken(refreshToken)) {
             // extract username from refresh token owner
             User user = refreshTokenService.getUserFromRefreshToken(refreshToken);
-            String newJwt = jwtService.generateJwtToken(user.getEmail());
+            String newJwt = jwtService.generateJwtToken(user.getEmail(), user.getRole().name());
 
             return ResponseEntity.ok(
                     AuthResponse.builder()

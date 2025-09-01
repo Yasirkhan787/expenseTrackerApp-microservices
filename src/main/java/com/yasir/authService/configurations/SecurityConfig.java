@@ -72,7 +72,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll() // Public endpoints (e.g., login, register)
                         .anyRequest().authenticated() // All other endpoints require authentication
                 )
-                .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider())
                 .build();

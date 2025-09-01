@@ -29,11 +29,12 @@ public class JwtServiceImpl implements JwtService {
 
     //
     @Override
-    public String generateJwtToken(String username) {
+    public String generateJwtToken(String username, String role) {
 
        return Jwts
                .builder()
                .setSubject(username)
+               .claim("role", role)
                .setIssuedAt(new Date())
                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                .signWith(getSignKey(), SignatureAlgorithm.HS256)
